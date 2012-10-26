@@ -1,0 +1,56 @@
+#!/bin/sh
+
+# Copyright 2005 Thomas A. Limoncelli
+# 
+#     This program is free software; you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation; either version 2 of the License, or
+#     (at your option) any later version.
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+# 
+# 
+#     You should have received a copy of the GNU General Public License
+#     along with this program; if not, write to the Free Software
+#     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+
+PATH=/usr/bin:/bin:/usr/bsd
+export PATH
+
+# 198.41.0.7 is FTP.RS.INTERNIC.
+
+#
+# Get the file:
+#
+
+ftp -n 198.41.0.6 <<HERE && diff -cw EXTERNAL.named.root.new EXTERNAL.named.root
+user anonymous root@
+cd /domain
+get named.root EXTERNAL.named.root.new
+quit
+HERE
+
+# If the original didn't exist, replace it
+if [ ! -f EXTERNAL.named.root ];
+then
+	cp EXTERNAL.named.root.new EXTERNAL.named.root
+fi
+
+cat <<HERE
+To install the newest named EXTERNAL.named.root, type these commands:
+	cd `pwd`
+	cp EXTERNAL.named.root EXTERNAL.named.root.bak
+	chmod u+w EXTERNAL.named.root
+	cp EXTERNAL.named.root.new EXTERNAL.named.root
+        chmod 444 EXTERNAL.named.root
+        chown 0:0 EXTERNAL.named.root
+ 
+This is the file used on the EXTERNAL DNS system.  Do
+NOT use this file on the INTERNAL DNS!
+ 
+HERE
+
+cmp EXTERNAL.named.root EXTERNAL.named.root.new
+
