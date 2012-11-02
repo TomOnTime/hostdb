@@ -1,0 +1,65 @@
+
+
+#
+# External zones:
+#  These are fairly simple.  There are only 3 zones: cibernet.com and the 2 for London Colo
+#
+
+EXTERNAL.cibernet.com -> 							\
+		cibernetcorp@ns0.lt.nostrum.com:~cibernetcorp/zones/. 		\
+		/var/named/cibernet.com..zone
+
+EXTERNAL.6.113.212.in-addr.arpa -> 						\
+	cibernetcorp@ns0.lt.nostrum.com:~cibernetcorp/zones/EXTERNAL.64-127.6.113.212.in-addr.arpa	\
+	/var/named/64-127.6.113.212.in-addr.arpa.zone
+
+EXTERNAL.16.113.212.in-addr.arpa ->						\
+	cibernetcorp@ns0.lt.nostrum.com:~cibernetcorp/zones/EXTERNAL.112-127.16.113.212.in-addr.arpa	\
+	/var/named/112-127.16.113.212.in-addr.arpa.zone
+
+# WARNING!
+# juice.cibernet.com contains EXTERNAL zones.  Nobody on the inside should point to it.
+# In fact, its own /etc/resolv.conf doesn't point to it.  It gets its DNS data from adam.cibernet.com
+
+#
+# Internal zones:
+#
+
+INTERNAL.cibernet.com						\
+localhost.zone named.local					\
+INTERNAL.1.168.192.in-addr.arpa					\
+INTERNAL.201.1.10.in-addr.arpa					\
+INTERNAL.240.1.10.in-addr.arpa					\
+	->							\
+		/var/named/.					\
+		adam.cibernet.com:/var/named/.			\
+		oduk01.cibernet.com:/var/named/.		\
+		oduk02.cibernet.com:/var/named/.		\
+		odnj01.cibernet.com:/var/named/.
+
+
+INTERNAL.named.root -> 						\
+		adam.cibernet.com:/var/named/named.ca		\
+		oduk01.cibernet.com:/var/named/named.ca		\
+		oduk02.cibernet.com:/var/named/named.ca		\
+		odnj01.cibernet.com:/var/named/named.ca
+
+
+#
+# DHCP stuff for Mac OS X Server DHCP servers
+# This file isn't used in /var/named but by having this
+# rule it causes the "RELOAD local" command to run.
+dhcpnetinfo.txt -> /var/named/dhcpnetinfo.txt
+
+#
+# What command should be run if a file was pushed to this server?
+# (Note: Some effort was made to have them execute in this order.)
+#
+
+RELOAD local				cd /etc && make hostdb
+RELOAD adam.cibernet.com		kill -1 `cat /var/run/named.pid`
+RELOAD odnj01.cibernet.com		kill -1 `cat /var/run/named.pid`
+RELOAD oduk01.cibernet.com		kill -1 `cat /var/run/named.pid`
+RELOAD oduk02.cibernet.com		kill -1 `cat /var/run/named.pid`
+RELOAD cibernetcorp@ns0.lt.nostrum.com	sudo rndc reload
+
